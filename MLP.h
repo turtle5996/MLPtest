@@ -16,4 +16,10 @@ class CMLP
 	double* pInValue, * pOutValue; //입력레이어, 출력레이어
 	double* pCorrectOutValue; //정답레이어
 	bool Create(int InNode, int* pHiddenNode, int OutNode, int numHiddenLayer);
+private:
+	void InitW();
+public:
+	void Forward();
+private:
+	double ActivationFunc(double weightsum);
 };
