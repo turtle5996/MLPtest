@@ -130,9 +130,10 @@ void CMLP::Forward()
 double CMLP::ActivationFunc(double weightsum)
 {
 	//step func
+	/*
 	if (weightsum > 0)return 1.0;
 	else return 0.0;
-	
+	*/
 	//sigmoidfunc
-	//return 1.0/(1.0+exp(-u));
+	return 1.0/(1.0+exp(-weightsum));
 }
