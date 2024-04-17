@@ -1,4 +1,6 @@
 class CMLP
+
+#define LEARNING_RATE 0.1 
 {public:
 	CMLP();
 	~CMLP();
@@ -13,6 +15,8 @@ class CMLP
 	double*** m_Weight;  //[start layer] [시작 노드] [연결 노드]
 	double** m_NodeOut; //[layer][node]
 
+	double** m_ErrorGradient; //[layer][node]
+
 	double* pInValue, * pOutValue; //입력레이어, 출력레이어
 	double* pCorrectOutValue; //정답레이어
 	bool Create(int InNode, int* pHiddenNode, int OutNode, int numHiddenLayer);
@@ -22,4 +26,6 @@ public:
 	void Forward();
 private:
 	double ActivationFunc(double weightsum);
+public:
+	void BackPopagationLearning();
 };

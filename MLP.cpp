@@ -12,6 +12,7 @@ CMLP::CMLP() {
 	m_NumNodes = NULL;
 	m_Weight = NULL;
 	m_NodeOut = NULL;
+	m_ErrorGradient = NULL;
 
 	pInValue = NULL;
 	pOutValue = NULL;
@@ -22,11 +23,11 @@ CMLP::CMLP() {
 //소멸자
 CMLP::~CMLP() {
 	int layer,snode,enode;
-	if (m_NodeOut != NULL) {
+	/*if (m_NodeOut != NULL) {
 		for (layer = 0; layer < m_iNumTotalLayer + 1; layer++) 
 			free(m_NodeOut[layer]);
 		free(m_NodeOut);
-	}
+	}*/
 
 	if (m_Weight != NULL) {
 		for (layer = 0; layer < m_iNumTotalLayer - 1; layer++) {
@@ -40,6 +41,12 @@ CMLP::~CMLP() {
 	}
 
 	if (m_NumNodes != NULL) free(m_NumNodes);
+
+	if (m_ErrorGradient != NULL) {
+		for (layer = 0; layer < m_iNumTotalLayer; layer++)
+			free(m_ErrorGradient[layer]);
+		free(m_ErrorGradient);
+	}
 
 }
 
@@ -137,3 +144,45 @@ double CMLP::ActivationFunc(double weightsum)
 	//sigmoidfunc
 	return 1.0/(1.0+exp(-weightsum));
 }
+
+
+void CMLP::BackPopagationLearning()
+{
+	int layer, snode, enode;
+	//에러검사를 위한 메모리 할당
+	if (m_ErrorGradient == NULL) {
+		m_ErrorGradient = (double**)malloc((m_iNumTotalLayer) * sizeof(double*));
+		for (layer = 0; layer < m_iNumTotalLayer; layer++) {
+			m_ErrorGradient[layer] = (double*)malloc((m_NumNodes[layer]) * sizeof(double));
+		}
+	}
+
+	//출력층 에러경사 계산
+	for (snode = 1; snode <= m_iNumOutNodes; snode++) {
+		m_ErrorGradient[m_iNumTotalLayer - 1][snode] =
+			(pCorrectOutValue[snode] - pOutValue[snode]) * (pOutValue[snode] * (1 - pOutValue[snode]));
+	}
+
+	//중간층 에러 경사값 계산
+	for (layer = m_iNumTotalLayer - 2; layer >= 0; layer--) {
+		for (snode = 1; snode <= m_NumNodes[layer]; snode++) {
+			m_ErrorGradient[layer][snode] = 0.0;
+			for (enode = 1; enode <= m_NumNodes[layer + 1]; enode++) {
+				m_ErrorGradient[layer][snode] += (m_ErrorGradient[layer + 1][enode] * m_Weight[layer][snode][enode]);
+			}
+			m_ErrorGradient[layer][snode] *= m_NodeOut[layer][snode] * (1 - m_NodeOut[layer][snode]);
+		}
+	}
+
+	//가중치 갱신 
+	for (layer = m_iNumTotalLayer - 2; layer >= 0; layer--) {
+		for (enode = 1; enode <= m_NumNodes[layer + 1]; enode++) {
+			m_Weight[layer][0][enode] += (LEARNING_RATE * m_ErrorGradient[layer + 1][enode] * 1);//바이어스
+			for (snode = 1; snode <= m_NumNodes[layer]; snode++) {
+				m_Weight[layer][snode][enode] += (LEARNING_RATE * m_ErrorGradient[layer + 1][enode] * m_NodeOut[layer][snode]);
+			}
+
+		}
+	}
+}
+
